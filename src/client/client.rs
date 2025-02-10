@@ -95,7 +95,7 @@ pub fn game_client() {
     while client_status != ClientStatus::Inactive {
         
         let response: String = prompt_user("Do you want to continue? (y/n)");
-        if 30respWhen did the When did the supreme court onse == "n" {
+        if response == "n" {
             client_status = ClientStatus::Inactive;
         }
 
