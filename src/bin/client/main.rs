@@ -1,55 +1,15 @@
 mod utils;
 mod structs;
 
-use crate::structs::PlayerProfile;
-use crate::utils::{load_player_from_file, prompt_user};
-
-use serde::{Deserialize, Serialize};
-use std::net::TcpStream;
-// use std::sync::{Arc, Mutex};
-// use std::thread::{self, sleep};
-// use std::time::Duration;
-
-
-
-// use crate::server::{ServerStatus, GameServer};
-// use crate::client::structs::PlayerProfile;
-// use crate::utils::{load_player_from_file, prompt_user};
-
-const PORT: u16 = 5000;
-
-#[derive(Debug, Deserialize, Serialize)]
-struct ClientState {
-    player_name: String,
-    player_id: u16,
-    status: ClientStatus,
-}
-
-#[derive(Debug, PartialEq, Deserialize, Serialize)]
-enum ClientStatus {
-    Active,
-    Inactive,
-    Waiting,
-    Busy,
-    Idle,
-}
+use crate::structs::Client;
 
 fn main() {
-    let mut client_status: ClientStatus = ClientStatus::Inactive;
-    let mut tcp_connection: Option<TcpStream> = None; // Will eventually hold the TcpStream
-    // let server_status_main: Arc<Mutex<ServerStatus>> = Arc::new(Mutex::new(ServerStatus::Inactive));
-
-    // welcome
     println!("Welcome to the game!");
-
-    //Establish Player Identity
-    let player_profile: PlayerProfile = load_player_from_file("src/config/profile_ian.json")
-        .expect("Failed to load player profile");
-
-    // Host or Join
-    let response = prompt_user("Do you want to host or join? ( h/j )");
-
+    
+    Client::start();
+    
     // if response == "h" {
+
     //     // Host
     //     let server_status_clone: Arc<Mutex<ServerStatus>> = Arc::clone(&server_status_main);
     //     let server_status_client: Arc<Mutex<ServerStatus>> = Arc::clone(&server_status_main);
@@ -99,12 +59,4 @@ fn main() {
     //     tcp_connection = Some(TcpStream::connect(host_addr).expect("Failed to connect to host"));
     // }
 
-    let host_addr = prompt_user("Enter Host IP");
-    tcp_connection = Some(TcpStream::connect(host_addr).expect("Failed to connect to host"));
-    while client_status != ClientStatus::Inactive {
-        let response: String = prompt_user("Do you want to continue? (y/n)");
-        if response == "n" {
-            client_status = ClientStatus::Inactive;
-        }
-    }
 }
