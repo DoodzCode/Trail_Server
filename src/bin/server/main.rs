@@ -1,3 +1,13 @@
+mod processors;
+mod structs;
+mod controllers;
+mod engine;
+mod utils;
+
+fn main(){
+
+}
+
 use std::collections::HashMap;
 use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::sync::{Arc, Mutex};

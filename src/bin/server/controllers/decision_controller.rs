@@ -36,6 +36,8 @@ pub fn captains_orders(game_state: &mut GameState) {
     print!("{:?} do you want to 1. proceed or 2. delay?", &party.name);
     io::stdout().flush().unwrap();
     
+    // TODO get_input() was moved to the client
+    
     let cmd: String = utils::get_input();     
     let party_name = String::from(&party.name);
     match cmd.as_str() {

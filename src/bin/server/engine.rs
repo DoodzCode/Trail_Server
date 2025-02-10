@@ -9,7 +9,7 @@ use crate::controllers::decision_controller::{
     party_to_delay, 
     party_to_proceed
 };
-use crate::server::{PlayerCollection, ServerStatus};
+use crate::structs::{PlayerCollection, ServerStatus}; // this would probably be used by the controller? server?
 use crate::structs::game_state::GameState;
 use crate::utils::{
     load_game_from_file,

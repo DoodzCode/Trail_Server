@@ -1,7 +1,15 @@
 [package]
-name = "Oregonious-Trail"
+name = "Oregonious_Trail"
 version = "0.1.0"
 edition = "2021"
+
+[[bin]]
+name = "otserver"
+path = "src/bin/server.rs"
+
+[[bin]]
+name = "otclient"
+path = "src/bin/client/main.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
