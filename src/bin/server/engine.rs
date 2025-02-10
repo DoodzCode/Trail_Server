@@ -9,14 +9,17 @@ use crate::controllers::decision_controller::{
     party_to_delay, 
     party_to_proceed
 };
-use crate::structs::{PlayerCollection, ServerStatus}; // this would probably be used by the controller? server?
+// use crate::structs::{PlayerCollection, ServerStatus}; // this would probably be used by the controller? server?
 use crate::structs::game_state::GameState;
 use crate::utils::{
     load_game_from_file,
     line_break
 };
 
-
+/**
+ * Engine may need to have a few phases: startup, loop, wrapup?
+ * Right now, the loops seems to set up and then perform the loop
+ */
 
 pub fn game_loop(number_of_players: &u16, players: &mut PlayerCollection) {
 
