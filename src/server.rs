@@ -80,6 +80,7 @@ pub fn wait_for_players(number_of_players: u16, port: u16, server_status: &Arc<M
                 
                 if !host_joined && addr.ip().to_string() == "127.0.0.1"{
                     println!("[HOST CONNECTED] {}", addr);
+                    players.insert(addr, stream);
                     host_joined = true;
                     {
                         let mut server_status_lock = server_status.lock().unwrap();

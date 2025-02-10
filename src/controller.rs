@@ -50,6 +50,4 @@ pub fn captains_orders(game_state: &mut GameState) {
     scores.insert(party_name, party.position);
   }   
   game_state.score = scores;
-  
 }
-

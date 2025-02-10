@@ -1,5 +1,6 @@
 use std::io::Write;
 use serde_json;
+use log::{info, warn, error};
 use crate::processors::{
     report_processor::status_report,
     conditions_processor::cycle_conditions
@@ -21,13 +22,17 @@ use crate::utils::{
 pub fn game_loop(number_of_players: &u16, players: &mut PlayerCollection) {
 
     // startup
-    println!();
-    println!("setup:");
-    line_break();
+    env_logger::init();
+    
+    info!("\n\nsetup:\n");
+    // println!();
+    // println!("setup:");
+    // line_break();
     
     let mut game_state: GameState = load_game_from_file("src/config/game_state.json").expect("Failed to load game data");
     status_report(&mut game_state);
-    println!("{:#?}", &game_state);
+    // println!("{:#?}", &game_state);
+    info!("\n{:#?}", &game_state);
 
     // Serialize the game_state
     let serialized_game_state = serde_json::to_string(&game_state).expect("Failed to serialize game state");

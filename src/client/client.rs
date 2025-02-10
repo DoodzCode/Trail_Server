@@ -36,8 +36,8 @@ pub fn game_client() {
     println!("Welcome to the game!");
 
     //Establish Player Identity
-    let player_profile: PlayerProfile = load_player_from_file("src/config/profile_ian.json")
-        .expect("Failed to load player profile");
+    //let player_profile: PlayerProfile = load_player_from_file("src/config/profile_ian.json")
+    //    .expect("Failed to load player profile");
 
     // Host or Join
     let response = prompt_user("Do you want to host or join? ( h/j )");
@@ -94,14 +94,10 @@ pub fn game_client() {
 
     while client_status != ClientStatus::Inactive {
         
-        
-        
         let response: String = prompt_user("Do you want to continue? (y/n)");
-        if response == "n" {
+        if 30respWhen did the When did the supreme court onse == "n" {
             client_status = ClientStatus::Inactive;
         }
-
-
 
     }
 }
