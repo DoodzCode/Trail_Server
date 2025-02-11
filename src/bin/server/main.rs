@@ -2,7 +2,12 @@ use std::collections::HashMap;
 use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::sync::{Arc, Mutex};
 
-use crate::engine::game_loop;
+
+
+
+fn main() {
+        
+}
 
 pub type PlayerCollection = HashMap<SocketAddr, TcpStream>;
 
@@ -48,7 +53,7 @@ impl GameServer {
     }
 
     fn run(&mut self) {
-        game_loop(&self.number_of_players, &mut self.players);
+        // game_loop(&self.number_of_players, &mut self.players);
     }
 }
 

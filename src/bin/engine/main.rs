@@ -1,24 +1,38 @@
+mod controllers;
+mod processors;
+mod structs;
+mod utils;
+
 use std::io::Write;
 use serde_json;
-use crate::processors::{
+
+
+use processors::{
     report_processor::status_report,
     conditions_processor::cycle_conditions
 };
-use crate::controllers::decision_controller::{
+use controllers::decision_controller::{
     self, 
     party_to_delay, 
     party_to_proceed
 };
-use crate::server::{PlayerCollection, ServerStatus};
-use crate::structs::game_state::GameState;
-use crate::utils::{
+// use server::{PlayerCollection, ServerStatus};
+use structs::game_state::GameState;
+use utils::{
     load_game_from_file,
     line_break
 };
 
 
+fn main() {
 
-pub fn game_loop(number_of_players: &u16, players: &mut PlayerCollection) {
+}
+
+
+
+pub fn game_loop() {
+
+    // Load game from config file created by the server?
 
     // startup
     println!();
@@ -33,9 +47,9 @@ pub fn game_loop(number_of_players: &u16, players: &mut PlayerCollection) {
     let serialized_game_state = serde_json::to_string(&game_state).expect("Failed to serialize game state");
 
     // Broadcast the serialized game_state to all players
-    for (_, player) in players.iter_mut() {
-        let _ = player.write_all(serialized_game_state.as_bytes());
-    }
+    // for (_, player) in players.iter_mut() {
+    //     let _ = player.write_all(serialized_game_state.as_bytes());
+    // }
     
 
     // main loop
@@ -43,9 +57,9 @@ pub fn game_loop(number_of_players: &u16, players: &mut PlayerCollection) {
         if game_state.game_date.week_number > game_state.g_duration - 1 { break; }
 
         // Broadcast message to all players
-        for (_, player) in players.iter_mut() {
-            let _ = player.write_all("[SERVER BROADCAST] Test Message".as_bytes());
-        }
+        // for (_, player) in players.iter_mut() {
+        //     let _ = player.write_all("[SERVER BROADCAST] Test Message".as_bytes());
+        // }
         
         //* conditions_processor -  cycle conditions
         cycle_conditions(&mut game_state);
