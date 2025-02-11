@@ -15,8 +15,8 @@ pub type PlayerCollection = HashMap<SocketAddr, TcpStream>;
 pub enum ServerStatus {
     Starting,
     WaitingForPlayers,
-    HostingGame,    // Just sits until something needs to be sent/received?
     Busy,
+    Running,
     Waiting,
     Inactive,
 }
@@ -42,11 +42,13 @@ impl Server {
                 .expect("Could not bind to port"),
         };
 
+        game_server.wait_for_players();
         game_server.run();
     }
 
     fn run(&mut self) {
-        self.wait_for_players();
+        self.status = ServerStatus::Running;
+
 
         // Set up the GameConfig, save it to a file, then start up the engine?
     }
@@ -77,6 +79,5 @@ impl Server {
         }
 
         println!("[SERVER] All players connected.");
-        self.status = ServerStatus::Busy;
     }
 }
