@@ -5,6 +5,7 @@ use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::sync::{Arc, Mutex};
 mod utils;
 use std::thread;
+use uuid::Uuid;
 
 
 use utils::{load_server_config_file, ServerConfig};
@@ -66,7 +67,7 @@ impl Server {
         // });
 
    
-        //for stream in self.listener.accept() {
+        for stream in self.listener.incoming() {
             // {
             //     let running = running.lock().unwrap();
             //     if !*running {
@@ -75,19 +76,20 @@ impl Server {
             //     }
             // }
     
-            //match stream {
-            match self.listener.accept() {
-                Ok((stream, addr)) => {
-                    println!("Client connected");
-
-                    let mut connections = self.players.lock().unwrap();
-                    connections.insert(addr, stream.try_clone().expect("Failed to clone stream"));
-                    let connections_clone = Arc::clone(&self.players);
-
+            match stream {
+            //match self.listener.accept() {
+                // Ok((stream, addr)) => {
+                //     println!("Client connected");
+                //     let mut connections = self.players.lock().unwrap();
+                //     connections.insert(addr, stream.try_clone().expect("Failed to clone stream"));
+                //     let connections_clone = Arc::clone(&self.players);
+                Ok(stream) => {
+                    let id = Uuid::new_v4();
                     // spawn a new thread here
                     thread::spawn(move || {
-                        Server::handle_client(addr.to_string(), stream, connections_clone);
+                        handle_client(id, stream);
                     });    
+
                 }
                 Err(e) => {
                     println!("Connection failed: {}", e);
@@ -96,7 +98,7 @@ impl Server {
         }
 
 
-        fn handle_client(id: String, mut stream: TcpStream, connections: Arc<Mutex<PlayerCollection>>)  {
+        fn handle_client(id: Uuid, mut stream: TcpStream)  {
     
             let mut buffer = [0; 512];
             loop {
@@ -125,7 +127,7 @@ impl Server {
         // Set up the GameConfig, save it to a file, then start up the engine?
     }
 
-
+}
 
     // fn wait_for_players(&mut self) {
     //     self.status = ServerStatus::WaitingForPlayers;
