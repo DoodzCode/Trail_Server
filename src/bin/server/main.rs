@@ -1,116 +1,84 @@
 
 use std::collections::HashMap;
 use std::net::{SocketAddr, TcpListener, TcpStream};
-use std::sync::{Arc, Mutex};
 
+mod utils;
+
+use utils::{load_server_config_file, ServerConfig};
 
 fn main() {
-        
+    Server::start();
 }
 
 pub type PlayerCollection = HashMap<SocketAddr, TcpStream>;
 
 #[derive(Debug, PartialEq)]
 pub enum ServerStatus {
-    WaitingForHost,
+    Starting,
     WaitingForPlayers,
     Busy,
-    Idle,
-    Active,
+    Running,
+    Waiting,
     Inactive,
 }
 
-pub struct GameServer {
-    status: Arc<Mutex<ServerStatus>>,
+pub struct Server {
+    status: ServerStatus,
     players: PlayerCollection,
     number_of_players: u16,
     port: u16,
+    listener: TcpListener,
 }
 
-impl GameServer {
-    pub fn start(status: Arc<Mutex<ServerStatus>>, number_of_players: u16, port: u16) {
-        
-        let mut players: PlayerCollection = wait_for_players(number_of_players, port, &status);
-        for (addr, _) in players.iter() {
-            println!("[PLAYER] {} is ready!", addr);
-        }
-        
-        {
-            let mut server_status_lock = status.lock().unwrap();
-            *server_status_lock = ServerStatus::WaitingForHost;
-            drop(server_status_lock);
-        }
+impl Server {
+    pub fn start() {
+        let server_config: ServerConfig = load_server_config_file("src/config/server.json").unwrap();
 
-        let mut game_server: GameServer = GameServer {
-            status,
+        let mut game_server: Server = Server {
+            status: ServerStatus::Starting,
             players: HashMap::new(),
-            number_of_players,
-            port,
+            number_of_players: server_config.number_of_players,
+            port: server_config.port,
+            listener: TcpListener::bind(("0.0.0.0", server_config.port))
+                .expect("Could not bind to port"),
         };
 
+        game_server.wait_for_players();
         game_server.run();
     }
 
     fn run(&mut self) {
-        // game_loop(&self.number_of_players, &mut self.players);
-    }
-}
+        self.status = ServerStatus::Running;
 
 
-
-pub fn wait_for_players(number_of_players: u16, port: u16, server_status: &Arc<Mutex<ServerStatus>>) -> PlayerCollection {
-    let listener: TcpListener = TcpListener::bind(("0.0.0.0", port)).expect("Could not bind to port");
-
-    {
-        let mut server_status_lock = server_status.lock().unwrap();
-        *server_status_lock = ServerStatus::WaitingForHost;
-        drop(server_status_lock);
+        // Set up the GameConfig, save it to a file, then start up the engine?
     }
 
-    let mut players: PlayerCollection = HashMap::new();
-    let mut host_joined: bool = false;
+    fn wait_for_players(&mut self) {
+        self.status = ServerStatus::WaitingForPlayers;
 
-    println!(
-        "[SERVER] Waiting for {} players to connect on port {}...",
-        number_of_players, port
-    );
+        println!(
+            "[SERVER] Waiting for {} players to connect on port {}...",
+            self.number_of_players, self.port
+        );
 
-    // TODO: May need something about making sure the first connection comes from 127.0.0.1
-    while players.len() < number_of_players as usize {
-        
-        match listener.accept() {
-
-            Ok((stream, addr)) => {
-                
-                if !host_joined && addr.ip().to_string() == "127.0.0.1"{
-                    println!("[HOST CONNECTED] {}", addr);
-                    host_joined = true;
-                    {
-                        let mut server_status_lock = server_status.lock().unwrap();
-                        *server_status_lock = ServerStatus::WaitingForPlayers;
-                        drop(server_status_lock);
-                    }
-
-                } else if host_joined {
+        while self.players.len() < self.number_of_players as usize {
+            match self.listener.accept() {
+                Ok((stream, addr)) => {
                     println!("[PLAYER CONNECTED] {}", addr);
-                    players.insert(addr, stream);
+                    self.players.insert(addr, stream);
                     println!(
                         "[PLAYERS CONNECTED] {}/{}",
-                        &players.len(),
-                        number_of_players
+                        self.players.len(),
+                        self.number_of_players
                     );
-
-                } else {
-                    println!("[ERROR] Host must connect first.");
+                }
+                Err(e) => {
+                    println!("[ERROR] Could not accept connection: {}", e);
                 }
             }
-            Err(e) => {
-                println!("[ERROR] Could not accept connection: {}", e);
-            }
         }
+
+        println!("[SERVER] All players connected.");
     }
-
-    println!("[SERVER] All players connected.");
-
-    players
 }
