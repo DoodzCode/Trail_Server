@@ -99,7 +99,7 @@ impl Server {
 
 
         fn handle_client(id: Uuid, mut stream: TcpStream)  {
-    
+            stream.write_all(b"").expect("cant");
             let mut buffer = [0; 512];
             loop {
                 match stream.read(&mut buffer) {
@@ -109,7 +109,7 @@ impl Server {
                             break;
                         }
                         let msg = String::from_utf8_lossy(&buffer[..bytes_read]);
-                        println!("Message received");
+                        println!("player {} says: {}", id, msg);
     
                         stream.write_all(b"Trail Server > ").expect("Could not write to stream");
                     }
