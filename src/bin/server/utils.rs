@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::BufReader;
+use std::io::{BufReader, stdin, Read};
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize)]
@@ -24,4 +24,10 @@ fn parse_to_command(input: String) -> (String, String) {
     },
     None => (input, String::from("")),
   }
+}
+pub fn get_input() -> String {
+  let mut r_input: String = String::new();
+  stdin().read_line(&mut r_input).unwrap();
+  let input: &str = r_input.trim();
+  String::from(input).to_lowercase()
 }

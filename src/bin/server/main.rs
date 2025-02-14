@@ -8,7 +8,7 @@ use std::thread;
 use uuid::Uuid;
 
 
-use utils::{load_server_config_file, ServerConfig};
+use utils::{load_server_config_file, ServerConfig, get_input};
 
 fn main() {
     Server::start();
@@ -64,25 +64,38 @@ impl Server {
          );
 
         // This thread listens for the termination command...
+        // KILL SWITCH
 
-        // let running: Arc<Mutex<bool>> = Arc::new(Mutex::new(true));
-        // let running_clone = Arc::clone(&running);
-        // thread::spawn(move || {
-        //     let mut buffer = String::new();
-        //     std::io::stdin().read_line(&mut buffer).expect("Failed to read line");
-        //     let mut running = running_clone.lock().unwrap();
-        //     *running = false;
-        // });
+        let running: Arc<Mutex<bool>> = Arc::new(Mutex::new(true));
+        let running_clone: Arc<Mutex<bool>> = Arc::clone(&running);
+        thread::spawn(move || {
+            loop {
+                let user_input = get_input();
+                match user_input.as_str() {
+                    "shutdown" => {
+                        println!("Shutting down server");
+                        let mut running_clone_lock = running_clone.lock().unwrap();
+                        *running_clone_lock = false;
+                        drop(running_clone_lock);
+                    },
+                    _ => {
+                        println!("{}", user_input);
+                    }
+                }
+            }
+            // let mut running = running_clone.lock().unwrap();
+            // *running = false;
+        });
 
    
         for stream in self.listener.incoming() {
-            // {
-            //     let running = running.lock().unwrap();
-            //     if !*running {
-            //         println!("Server is shutting down");
-            //         break;
-            //     }
-            // }
+            {
+                let running = running.lock().unwrap();
+                if !*running {
+                    println!("Server is shutting down");
+                    break;
+                }
+            }
     
             match stream {
             //match self.listener.accept() {
