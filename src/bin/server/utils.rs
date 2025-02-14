@@ -14,3 +14,14 @@ pub fn load_server_config_file(filename: &str) -> serde_json::Result<ServerConfi
   let server_config: ServerConfig = serde_json::from_reader(reader)?;
   Ok(server_config)
 }
+
+
+fn parse_to_command(input: String) -> (String, String) {
+  match input.find(" ") {
+    Some(index)  => {
+      let ( cmd_name, cmd_args ) = input.split_at(index);
+      (String::from(cmd_name), String::from(cmd_args))
+    },
+    None => (input, String::from("")),
+  }
+}
