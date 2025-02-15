@@ -15,7 +15,6 @@ pub fn load_server_config_file(filename: &str) -> serde_json::Result<ServerConfi
   Ok(server_config)
 }
 
-
 fn parse_to_command(input: String) -> (String, String) {
   match input.find(" ") {
     Some(index)  => {
@@ -25,6 +24,7 @@ fn parse_to_command(input: String) -> (String, String) {
     None => (input, String::from("")),
   }
 }
+
 pub fn get_input() -> String {
   let mut r_input: String = String::new();
   stdin().read_line(&mut r_input).unwrap();
