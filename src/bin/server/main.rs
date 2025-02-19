@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::net::{TcpListener, TcpStream};
 use std::sync::{Arc, Mutex};
 use std::borrow::Cow;
-use serde::{Deserialize};
+use serde::Deserialize;
 use serde_json;
 mod utils;
 
@@ -29,12 +29,18 @@ pub enum ServerStatus {
     Inactive,
 }
 
+#[derive(Deserialize)]
+enum Directive {
+    Proceed,
+}
+#[derive(Deserialize)]
 pub struct Order {
-    directive: String,              // the action ... collect{}, trade{}, proceed, delay, repair{}, build{}, fight{}, scout{}
-    assignment: String,             // person, party or empty in cases like the captain's orders
+    directive: Directive,
+    arguments: Vec<String>,     // {directive: proceed, value: tre}          // the action ... collect{}, trade{}, proceed, delay, repair{}, build{}, fight{}, scout{}
+    // assignment: String,             // person, party or empty in cases like the captain's orders
 }
 
-#[derive(serde::Deserialize)]
+#[derive(Deserialize)]
 pub struct Orders {
     convoy: String,
     orders: Vec<Order>,
