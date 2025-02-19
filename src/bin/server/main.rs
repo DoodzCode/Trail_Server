@@ -3,6 +3,9 @@ use std::io::{Read, Write};
 use std::collections::HashMap;
 use std::net::{TcpListener, TcpStream};
 use std::sync::{Arc, Mutex};
+use std::borrow::Cow;
+use serde::{Deserialize};
+use serde_json;
 mod utils;
 
 use std::thread;
@@ -26,13 +29,24 @@ pub enum ServerStatus {
     Inactive,
 }
 
+pub struct Order {
+    directive: String,              // the action ... collect{}, trade{}, proceed, delay, repair{}, build{}, fight{}, scout{}
+    assignment: String,             // person, party or empty in cases like the captain's orders
+}
+
+#[derive(serde::Deserialize)]
+pub struct Orders {
+    convoy: String,
+    orders: Vec<Order>,
+}
+
 pub struct Server {
     status: ServerStatus,
-    // players: Arc<Mutex<PlayerCollection>>,
     players: PlayerCollection,
     number_of_players: u16,
     port: u16,
     listener: TcpListener,
+    orders_list: Vec<Orders>,    
 }
 
 impl Server {
@@ -45,6 +59,7 @@ impl Server {
             port: server_config.port,
             listener: TcpListener::bind(("0.0.0.0", server_config.port))
                 .expect("Could not bind to port"),
+            orders_list: Vec::new(),
         };
         println!("Server is listening on port {}" , game_server.port);
         game_server.status = ServerStatus::WaitingForPlayers;
@@ -116,7 +131,9 @@ impl Server {
         fn handle_client(id: Uuid, mut stream: TcpStream)  {
             stream.write_all(b"Trail Server > ").expect("Could not write to stream");
             stream.write_all(b"").expect("cant");
-            let mut buffer = [0; 512];
+            // let mut buffer = [0; 512];
+            let mut buffer = [0; 1024];
+
             loop {
                 match stream.read(&mut buffer) {
                     Ok(bytes_read) => {
@@ -124,9 +141,14 @@ impl Server {
                             println!("Client disconnected");
                             break;
                         }
-                        let msg = String::from_utf8_lossy(&buffer[..bytes_read]);
-                        println!("player {} says: {}", id, msg);
-    
+                        let msg: Cow<'_, str> = String::from_utf8_lossy(&buffer[..bytes_read]);
+                        println!("from {} > {}", id, msg);
+
+                        let orders: Orders = serde_json::from_slice(&buffer[..bytes_read]).expect("Failed to deserialize JSON");                  
+                        
+
+
+                        // do this only if using a terminal - the client isn't looking for a return
                         // stream.write_all(b"Trail Server > ").expect("Could not write to stream");
                     }
                     Err(e) => {
