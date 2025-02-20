@@ -1,19 +1,19 @@
+mod utils;
 
 use std::io::{Read, Write};
 use std::collections::HashMap;
 use std::net::{TcpListener, TcpStream};
 use std::sync::{Arc, Mutex};
 use std::borrow::Cow;
-use serde::Deserialize;
-use serde_json;
-mod utils;
-
 use std::thread;
 use uuid::Uuid;
-
+use log::info;
+use serde::{Deserialize, Serialize};
+use serde_json;
 use utils::{load_server_config_file, ServerConfig, get_input};
 
 fn main() {
+    env_logger::init();
     Server::start();
 }
 
@@ -29,18 +29,17 @@ pub enum ServerStatus {
     Inactive,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 enum Directive {
     Proceed,
 }
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Order {
     directive: Directive,
-    arguments: Vec<String>,     // {directive: proceed, value: tre}          // the action ... collect{}, trade{}, proceed, delay, repair{}, build{}, fight{}, scout{}
-    // assignment: String,             // person, party or empty in cases like the captain's orders
+    arguments: Vec<String>,     // the action ... collect{}, trade{}, proceed, delay, repair{}, build{}, fight{}, scout{}
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Orders {
     convoy: String,
     orders: Vec<Order>,
@@ -67,13 +66,13 @@ impl Server {
                 .expect("Could not bind to port"),
             orders_list: Vec::new(),
         };
-        println!("Server is listening on port {}" , game_server.port);
+        info!("Server is listening on port {}" , game_server.port);
         game_server.status = ServerStatus::WaitingForPlayers;
         game_server.run();
     }
 
     fn run(&mut self) {
-         println!(
+         info!(
              "[SERVER] Waiting for {} players to connect on port {}...",
              self.number_of_players, self.port
          );
@@ -86,13 +85,13 @@ impl Server {
                 let user_input = get_input();
                 match user_input.as_str() {
                     "shutdown" => {
-                        println!("Shutting down server");
+                        info!("Shutting down server");
                         let mut running_clone_lock = running_clone.lock().unwrap();
                         *running_clone_lock = false;
                         drop(running_clone_lock);
                     },
                     _ => {
-                        println!("{}", user_input);
+                        info!("{}", user_input);
                     }
                 }
             }
@@ -104,7 +103,7 @@ impl Server {
             {
                 let running = running.lock().unwrap();
                 if !*running {
-                    println!("Server is shutting down");
+                    info!("Server is shutting down");
                     break;
                 }
             }
@@ -120,7 +119,7 @@ impl Server {
                                 handle_client(id, stream);
                             });
                             if len == self.number_of_players as usize {
-                                println!("[SERVER] All players connected.");        
+                                info!("[SERVER] All players connected.");        
                             }
                         },
                         _ => {
@@ -129,7 +128,7 @@ impl Server {
                     }
                 }
                 Err(e) => {
-                    println!("Connection failed: {}", e);
+                    info!("Connection failed: {}", e);
                 }
             }
         }
@@ -144,21 +143,37 @@ impl Server {
                 match stream.read(&mut buffer) {
                     Ok(bytes_read) => {
                         if bytes_read == 0 {
-                            println!("Client disconnected");
+                            info!("Client disconnected");
                             break;
                         }
                         let msg: Cow<'_, str> = String::from_utf8_lossy(&buffer[..bytes_read]);
-                        println!("from {} > {}", id, msg);
+                        info!("from {} > {}", id, msg);
 
-                        let orders: Orders = serde_json::from_slice(&buffer[..bytes_read]).expect("Failed to deserialize JSON");                  
-                        
+                        // test . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+                        let orders_object = Order {
+                            directive:Directive::Proceed,
+                            arguments: vec![String::from("true")],
+                        };
+                        let seriialized = serde_json::to_string(&orders_object).expect("Could not serialize");
+                        info!("Serialized JSON: {}", seriialized);
+
+                        let deserialzed: Order = serde_json::from_str(&seriialized).expect("Could not deserialize");
+                        info!("Deserialize Order: {:?}", deserialzed);
+
+                        // end test . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+
+
+                        // let orders: Vec<Order> = serde_json::from_slice(&buffer[..bytes_read]).expect("Failed to deserialize JSON");
+                        // info!("{:?}", orders);
 
 
                         // do this only if using a terminal - the client isn't looking for a return
                         // stream.write_all(b"Trail Server > ").expect("Could not write to stream");
+
                     }
                     Err(e) => {
-                        println!("Failed to read from stream: {}", e);
+                        info!("Failed to read from stream: {}", e);
                         break;
                     }
                 }

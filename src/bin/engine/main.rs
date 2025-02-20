@@ -4,6 +4,7 @@ mod structs;
 mod utils;
 
 use std::io::Write;
+use log::info;
 use serde_json;
 
 
@@ -32,16 +33,20 @@ fn main() {
 
 pub fn game_loop() {
 
+    env_logger::init();
+    
+    info!("\n\nsetup:\n");
     // Load game from config file created by the server?
 
     // startup
-    println!();
-    println!("setup:");
+
+    info!("");
+    info!("setup:");
     line_break();
     
     let mut game_state: GameState = load_game_from_file("src/config/game_state.json").expect("Failed to load game data");
     status_report(&mut game_state);
-    println!("{:#?}", &game_state);
+    info!("{:#?}", &game_state);
 
     // Serialize the game_state
     let serialized_game_state = serde_json::to_string(&game_state).expect("Failed to serialize game state");
@@ -80,7 +85,7 @@ pub fn game_loop() {
                 
                 "2" => party_to_delay(party),
 
-                _ => println!("Invalid Response")
+                _ => info!("Invalid Response")
             } 
             scores.insert(party_name, party.position);
         }   
@@ -89,9 +94,9 @@ pub fn game_loop() {
         // decision_controller();
         // Global Report
 
-        println!("");
+        info!("");
         for (key, value) in game_state.score.clone() {
-            println!("{}: {}", key, value);
+            info!("{}: {}", key, value);
         }
         line_break();    
     }
